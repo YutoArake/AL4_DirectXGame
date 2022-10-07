@@ -608,7 +608,7 @@ void Object3d::CreateModel()
 	UINT sizeIB = static_cast<UINT>(sizeof(unsigned short) * indices.size());
 
 	// リソース設定
-	// resourceDesc.Width = sizeIB;
+	resourceDesc.Width = sizeIB;
 	resourceDesc = CD3DX12_RESOURCE_DESC::Buffer(sizeIB);
 
 	// インデックスバッファ生成
