@@ -401,10 +401,11 @@ void Object3d::LoadTexture()
 
 void Object3d::CreateModel()
 {
+#pragma region ファイル読み込み
 	// ファイルストリーム
 	std::ifstream file;
 	// .objファイルを開く
-	file.open("Resources/triangle/triangle.obj");
+	file.open("Resources/triangle_tex/triangle_tex.obj");
 	// ファイルオープン失敗をチェック
 	if (file.fail()) {
 		assert(0);
@@ -433,10 +434,29 @@ void Object3d::CreateModel()
 			line_stream >> position.z;
 			// 座標データに追加
 			positions.emplace_back(position);
-			// 頂点データに追加
-			VertexPosNormalUv vertex{};
-			vertex.pos = position;
-			vertices.emplace_back(vertex);
+		}
+
+		// 先頭文字列がvtならテクスチャ
+		if (key == "vt") {
+			// U, V成分読み込み
+			XMFLOAT2 texcoord{};
+			line_stream >> texcoord.x;
+			line_stream >> texcoord.y;
+			// V方向反転
+			texcoord.y = 1.0f - texcoord.y;
+			// テクスチャ座標データに追加
+			texcoords.emplace_back(texcoord);
+		}
+
+		// 先頭文字列がvnなら法線ベクトル
+		if (key == "vn") {
+			// X, Y, Z成分読み込み
+			XMFLOAT3 normal{};
+			line_stream >> normal.x;
+			line_stream >> normal.y;
+			line_stream >> normal.z;
+			// 法線ベクトルデータに追加
+			normals.emplace_back(normal);
 		}
 
 		// 先頭文字がfならポリゴン(三角形)
@@ -446,136 +466,29 @@ void Object3d::CreateModel()
 			while (getline(line_stream, index_string, ' ')) {
 				// 頂点インデックス1個分の文字列をストリームに変換して解析しやすくする
 				std::istringstream index_stream(index_string);
-				unsigned short indexPosition;
+				unsigned short indexPosition, indexTexcoord, indexNormal;
 				index_stream >> indexPosition;
-				// 頂点インデックスに追加
-				indices.emplace_back(indexPosition - 1);
+				index_stream.seekg(1, ios_base::cur);	// スラッシュを飛ばす
+				index_stream >> indexTexcoord;
+				index_stream.seekg(1, ios_base::cur);	// スラッシュを飛ばす
+				index_stream >> indexNormal;
+				// 頂点データに追加
+				VertexPosNormalUv vertex{};
+				vertex.pos = positions[indexPosition - 1];
+				vertex.normal = normals[indexNormal - 1];
+				vertex.uv = texcoords[indexTexcoord - 1];
+				vertices.emplace_back(vertex);
+				// 頂点インデックスにデータを追加
+				indices.emplace_back((unsigned short)indices.size());
 			}
 		}
 	}
 	// ファイルを閉じる
 	file.close();
+
+#pragma endregion
 	
 	HRESULT result = S_FALSE;
-
-	std::vector<VertexPosNormalUv> realVertices;
-	//// 頂点座標の計算（重複あり）
-	//{
-	//	realVertices.resize((division + 1) * 2);
-	//	int index = 0;
-	//	float zValue;
-
-	//	// 底面
-	//	zValue = prizmHeight / 2.0f;
-	//	for (int i = 0; i < division; i++)
-	//	{
-	//		XMFLOAT3 vertex;
-	//		vertex.x = radius * sinf(XM_2PI / division * i);
-	//		vertex.y = radius * cosf(XM_2PI / division * i);
-	//		vertex.z = zValue;
-	//		realVertices[index++].pos = vertex;
-	//	}
-	//	realVertices[index++].pos = XMFLOAT3(0, 0, zValue);	// 底面の中心点
-	//	// 天面
-	//	zValue = -prizmHeight / 2.0f;
-	//	for (int i = 0; i < division; i++)
-	//	{
-	//		XMFLOAT3 vertex;
-	//		vertex.x = radius * sinf(XM_2PI / division * i);
-	//		vertex.y = radius * cosf(XM_2PI / division * i);
-	//		vertex.z = zValue;
-	//		realVertices[index++].pos = vertex;
-	//	}
-	//	realVertices[index++].pos = XMFLOAT3(0, 0, zValue);	// 天面の中心点
-	//}
-
-	//// 頂点座標の計算（重複なし）
-	//{
-	//	int index = 0;
-	//	// 底面
-	//	for (int i = 0; i < division; i++)
-	//	{
-	//		unsigned short index0 = i + 1;
-	//		unsigned short index1 = i;
-	//		unsigned short index2 = division;
-
-	//		vertices[index++] = realVertices[index0];
-	//		vertices[index++] = realVertices[index1];
-	//		vertices[index++] = realVertices[index2]; // 底面の中心点
-	//	}
-	//	// 底面の最後の三角形の1番目のインデックスを0に書き換え
-	//	vertices[index - 3] = realVertices[0];
-
-	//	int topStart = division + 1;
-	//	// 天面
-	//	for (int i = 0; i < division; i++)
-	//	{
-	//		unsigned short index0 = topStart + i;
-	//		unsigned short index1 = topStart + i + 1;
-	//		unsigned short index2 = topStart + division;
-
-	//		vertices[index++] = realVertices[index0];
-	//		vertices[index++] = realVertices[index1];
-	//		vertices[index++] = realVertices[index2]; // 天面の中心点
-	//	}
-	//	// 天面の最後の三角形の1番目のインデックスを0に書き換え
-	//	vertices[index - 2] = realVertices[topStart];
-
-	//	// 側面
-	//	for (int i = 0; i < division; i++)
-	//	{
-	//		unsigned short index0 = i + 1;
-	//		unsigned short index1 = topStart + i + 1;
-	//		unsigned short index2 = i;
-	//		unsigned short index3 = topStart + i;
-
-	//		if (i == division - 1)
-	//		{
-	//			index0 = 0;
-	//			index1 = topStart;
-	//		}
-
-	//		vertices[index++] = realVertices[index0];
-	//		vertices[index++] = realVertices[index1];
-	//		vertices[index++] = realVertices[index2];
-
-	//		vertices[index++] = realVertices[index2];
-	//		vertices[index++] = realVertices[index1];
-	//		vertices[index++] = realVertices[index3];
-	//	}
-	//}
-
-	//// 頂点インデックスの設定
-	//{
-	//	for (int i = 0; i < _countof(indices); i++)
-	//	{
-	//		indices[i] = i;
-	//	}
-	//}
-
-	//// 法線方向の計算
-	//for (int i = 0; i < _countof(indices) / 3; i++)
-	//{// 三角形１つごとに計算していく
-	//	// 三角形のインデックスを取得
-	//	unsigned short index0 = indices[i * 3 + 0];
-	//	unsigned short index1 = indices[i * 3 + 1];
-	//	unsigned short index2 = indices[i * 3 + 2];
-	//	// 三角形を構成する頂点座標をベクトルに代入
-	//	XMVECTOR p0 = XMLoadFloat3(&vertices[index0].pos);
-	//	XMVECTOR p1 = XMLoadFloat3(&vertices[index1].pos);
-	//	XMVECTOR p2 = XMLoadFloat3(&vertices[index2].pos);
-	//	// p0→p1ベクトル、p0→p2ベクトルを計算
-	//	XMVECTOR v1 = XMVectorSubtract(p1, p0);
-	//	XMVECTOR v2 = XMVectorSubtract(p2, p0);
-	//	// 外積は両方から垂直なベクトル
-	//	XMVECTOR normal = XMVector3Cross(v1, v2);
-	//	// 正規化（長さを1にする)
-	//	normal = XMVector3Normalize(normal);
-	//	// 求めた法線を頂点データに代入
-	//	XMStoreFloat3(&vertices[index0].normal, normal);
-	//	XMStoreFloat3(&vertices[index1].normal, normal);
-	//	XMStoreFloat3(&vertices[index2].normal, normal);
-	//}
 
 	UINT sizeVB = static_cast<UINT>(sizeof(VertexPosNormalUv) * vertices.size());
 
