@@ -354,7 +354,7 @@ bool Sprite::Initialize()
 	CD3DX12_HEAP_PROPERTIES heapPropsConstantBuffer = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
 	// リソース設定
 	CD3DX12_RESOURCE_DESC resourceDescConstantBuffer =
-		CD3DX12_RESOURCE_DESC::Buffer((sizeof(ConstBufferData) + 0xff) & ~0xff);
+		CD3DX12_RESOURCE_DESC::Buffer((sizeof(ConstBufferDataB0) + 0xff) & ~0xff);
 
 	// 定数バッファの生成
 	result = device->CreateCommittedResource(
@@ -363,7 +363,7 @@ bool Sprite::Initialize()
 	assert(SUCCEEDED(result));
 
 	// 定数バッファにデータ転送
-	ConstBufferData* constMap = nullptr;
+	ConstBufferDataB0* constMap = nullptr;
 	result = constBuff->Map(0, nullptr, (void**)&constMap);
 	if (SUCCEEDED(result)) {
 		constMap->color = color;
@@ -439,7 +439,7 @@ void Sprite::Draw()
 	this->matWorld *= XMMatrixTranslation(position.x, position.y, 0.0f);
 
 	// 定数バッファにデータ転送
-	ConstBufferData* constMap = nullptr;
+	ConstBufferDataB0* constMap = nullptr;
 	HRESULT result = this->constBuff->Map(0, nullptr, (void**)&constMap);
 	if (SUCCEEDED(result)) {
 		constMap->color = this->color;

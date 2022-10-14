@@ -32,7 +32,7 @@ public: // サブクラス
 	/// <summary>
 	/// 定数バッファ用データ構造体
 	/// </summary>
-	struct ConstBufferData
+	struct ConstBufferDataB0
 	{
 		XMFLOAT4 color;	// 色 (RGBA)
 		XMMATRIX mat;	// ３Ｄ変換行列
