@@ -9,9 +9,12 @@ GameScene::GameScene()
 
 GameScene::~GameScene()
 {
-	delete spriteBG;
 	delete object3d;
+	delete object3d2;
+	delete model_;
+	delete model2_;
 
+	delete spriteBG;
 	delete sprite1;
 	delete sprite2;
 }
@@ -35,9 +38,15 @@ void GameScene::Initialize(DirectXCommon* dxCommon, Input* input)
 
 	// 背景スプライト生成
 	spriteBG = Sprite::Create(1, { 0.0f,0.0f });
+	// モデル生成
+	model_ = Model::CreateFromOBJ("ground");
+	model2_ = Model::CreateFromOBJ("triangle_mat");
 	// 3Dオブジェクト生成
 	object3d = Object3d::Create();
-	object3d->Update();
+	object3d2 = Object3d::Create();
+	// 3Dオブジェクトにモデルを割り当てる
+	object3d->SetModel(model_);
+	object3d2->SetModel(model2_);
 
 	// テクスチャ2番に読み込む
 	Sprite::LoadTexture(2, L"Resources/texture.png");
@@ -76,6 +85,7 @@ void GameScene::Update()
 	}
 
 	object3d->Update();
+	object3d2->Update();
 
 	// スプライト移動
 	if (input->PushKey(DIK_SPACE)) {
@@ -97,7 +107,7 @@ void GameScene::Draw()
 	// 背景スプライト描画前処理
 	Sprite::PreDraw(cmdList);
 	// 背景スプライト描画
-	spriteBG->Draw();
+	// spriteBG->Draw();
 
 	/// <summary>
 	/// ここに背景スプライトの描画処理を追加できる
@@ -115,6 +125,7 @@ void GameScene::Draw()
 
 	// 3Dオブクジェクトの描画
 	object3d->Draw();
+	object3d2->Draw();
 
 	/// <summary>
 	/// ここに3Dオブジェクトの描画処理を追加できる

@@ -3,8 +3,8 @@
 #include <fstream>
 #include <sstream>
 #include <string>
-using namespace std;
 
+using namespace std;
 using namespace DirectX;
 using namespace Microsoft::WRL;
 
@@ -13,12 +13,9 @@ using namespace Microsoft::WRL;
 /// </summary>
 ID3D12Device* Model::device = nullptr;
 UINT Model::descriptorHandleIncrementSize = 0;
-ComPtr<ID3D12Resource> Model::texbuff;
-CD3DX12_CPU_DESCRIPTOR_HANDLE Model::cpuDescHandleSRV;
-CD3DX12_GPU_DESCRIPTOR_HANDLE Model::gpuDescHandleSRV;
 ComPtr<ID3D12DescriptorHeap> Model::descHeap;
 
-void Model::StaticInitialize(static ID3D12Device* device) {
+void Model::StaticInitialize(ID3D12Device* device) {
 	// nullptrチェック
 	assert(device);
 
@@ -27,6 +24,23 @@ void Model::StaticInitialize(static ID3D12Device* device) {
 	// デスクリプタヒープの初期化
 	InitializeDescriptorHeap();
 
+}
+
+Model* Model::CreateFromOBJ(const std::string& objname) {
+	// モデルのインスタンス生成
+	Model* model = new Model();
+	if (model == nullptr) {
+		return nullptr;
+	}
+
+	// 初期化
+	if (!model->Initialize(objname)) {
+		delete model;
+		assert(0);
+		return nullptr;
+	}
+	
+	return model;
 }
 
 void Model::InitializeDescriptorHeap()
@@ -48,18 +62,17 @@ void Model::InitializeDescriptorHeap()
 
 }
 
-void Model::CreateModel()
+void Model::CreateModel(const std::string& objname)
 {
 #pragma region ファイル読み込み
 	// ファイルストリーム
 	std::ifstream file;
 
 	// .objファイルを開く
-	// file.open("Resources/triangle_tex/triangle_tex.obj");
-	const string modelname = "ground";
-	const string filename = modelname + ".obj";							// "triangle_mat.obj"
-	const string directoryPath = "Resources/" + modelname + "/";	// "Resources/triangle_mat/"
-	file.open(directoryPath + filename);		// "Resources/triangle_mat/triangle_mat.obj"
+	const string modelname = objname;
+	const string filename = modelname + ".obj";
+	const string directoryPath = "Resources/" + modelname + "/";
+	file.open(directoryPath + filename);	
 
 	// ファイルオープン失敗をチェック
 	if (file.fail()) {
@@ -356,48 +369,20 @@ void Model::LoadTexture(const std::string& directoryPath, const std::string& fil
 	);
 }
 
-void Model::Initialize() {
+bool Model::Initialize(const std::string& objname) {
 	// nullptrチェック
 	assert(device);
 
-	// モデル生成
-	CreateModel();
+	CreateModel(objname);
 
-	Model::device = device;
-	HRESULT result;
-
-	// ヒーププロパティ
-	CD3DX12_HEAP_PROPERTIES heapProps = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
-	// リソース設定
-	CD3DX12_RESOURCE_DESC resourceDesc =
-		CD3DX12_RESOURCE_DESC::Buffer((sizeof(ConstBufferDataB1) + 0xff) & ~0xff);
-
-	// 定数バッファの生成(B1)
-	result = device->CreateCommittedResource(
-		&heapProps,
-		D3D12_HEAP_FLAG_NONE,
-		&resourceDesc,
-		D3D12_RESOURCE_STATE_GENERIC_READ,
-		nullptr,
-		IID_PPV_ARGS(&constBuffB1));
-	assert(SUCCEEDED(result));
-
+	return true;
 }
 
 void Model::Update() {
-	HRESULT result;
 
-	// 定数バッファへデータ転送
-	ConstBufferDataB1* constMap1 = nullptr;
-	result = constBuffB1->Map(0, nullptr, (void**)&constMap1);
-	constMap1->ambient = material.ambient;
-	constMap1->diffuse = material.diffuse;
-	constMap1->specular = material.specular;
-	constMap1->alpha = material.alpha;
-	constBuffB1->Unmap(0, nullptr);
 }
 
-void Model::Draw(static ID3D12GraphicsCommandList* cmdList) {
+void Model::Draw(ID3D12GraphicsCommandList* cmdList) {
 	// 頂点バッファの設定
 	cmdList->IASetVertexBuffers(0, 1, &vbView);
 	// インデックスバッファの設定
@@ -406,9 +391,6 @@ void Model::Draw(static ID3D12GraphicsCommandList* cmdList) {
 	// デスクリプタヒープの配列
 	ID3D12DescriptorHeap* ppHeaps[] = { descHeap.Get() };
 	cmdList->SetDescriptorHeaps(_countof(ppHeaps), ppHeaps);
-
-	// 定数バッファビューをセット
-	cmdList->SetGraphicsRootConstantBufferView(1, constBuffB1->GetGPUVirtualAddress());
 
 	// シェーダリソースビューをセット
 	// cmdList->SetGraphicsRootDescriptorTable(1, gpuDescHandleSRV);

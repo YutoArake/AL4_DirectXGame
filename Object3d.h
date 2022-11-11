@@ -29,12 +29,23 @@ public: // サブクラス
 		XMMATRIX mat;	// ３Ｄ変換行列
 	};
 
+	// 定数バッファ用データ構造体B1
+	struct ConstBufferDataB1
+	{
+		XMFLOAT3 ambient;	// アンビエント係数
+		float pad1;					// パディング
+		XMFLOAT3 diffuse;		// ディフューズ係数
+		float pad2;					// パディング
+		XMFLOAT3 specular;	// スペキュラー係数
+		float alpha;				// アルファ
+	};
+
 private: // 定数
-	static const int division = 50;					// 分割数
+	static const int division = 50;		// 分割数
 	static const float radius;				// 底面の半径
-	static const float prizmHeight;			// 柱の高さ
-	static const int planeCount = division * 2 + division * 2;		// 面の数
-	static const int vertexCount = planeCount * 3;		// 頂点数
+	static const float prizmHeight;		// 柱の高さ
+	static const int planeCount = division * 2 + division * 2;	// 面の数
+	static const int vertexCount = planeCount * 3;					// 頂点数
 
 public: // 静的メンバ関数
 	/// <summary>
@@ -155,8 +166,16 @@ public: // メンバ関数
 	/// <param name="position">座標</param>
 	void SetPosition(const XMFLOAT3& position) { this->position = position; }
 
+	/// <summary>
+	/// モデルの設定
+	/// </summary>
+	/// <param name="model">モデル</param>
+	void SetModel(Model* model) { this->model_ = model; }
+
 private: // メンバ変数
-	ComPtr<ID3D12Resource> constBuffB0; // 定数バッファ
+	// 定数バッファ
+	ComPtr<ID3D12Resource> constBuffB0;
+	ComPtr<ID3D12Resource> constBuffB1;
 	// 色
 	XMFLOAT4 color = { 1,1,1,1 };
 	// ローカルスケール
@@ -169,6 +188,6 @@ private: // メンバ変数
 	XMMATRIX matWorld;
 	// 親オブジェクト
 	Object3d* parent = nullptr;
-
-	Model* model_;
+	// モデル
+	Model* model_ = nullptr;
 };

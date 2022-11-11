@@ -2,10 +2,10 @@
 #include <d3dcompiler.h>
 #include <DirectXTex.h>
 #include <vector>
-using namespace std;
 
 #pragma comment(lib, "d3dcompiler.lib")
 
+using namespace std;
 using namespace DirectX;
 using namespace Microsoft::WRL;
 
@@ -313,6 +313,20 @@ bool Object3d::Initialize()
 		IID_PPV_ARGS(&constBuffB0));
 	assert(SUCCEEDED(result));
 
+	// リソース設定
+	resourceDesc = CD3DX12_RESOURCE_DESC::Buffer((sizeof(ConstBufferDataB1) + 0xff) & ~0xff);
+
+	// 定数バッファの生成(B1)
+	result = device->CreateCommittedResource(
+		&heapProps,
+		D3D12_HEAP_FLAG_NONE,
+		&resourceDesc,
+		D3D12_RESOURCE_STATE_GENERIC_READ,
+		nullptr,
+		IID_PPV_ARGS(&constBuffB1)
+	);
+	assert(SUCCEEDED(result));
+
 	return true;
 }
 
@@ -348,6 +362,14 @@ void Object3d::Update()
 	constMap->mat = matWorld * matView * matProjection;	// 行列の合成
 	constBuffB0->Unmap(0, nullptr);
 
+	// 定数バッファへデータ転送
+	ConstBufferDataB1* constMap1 = nullptr;
+	result = constBuffB1->Map(0, nullptr, (void**)&constMap1);
+	constMap1->ambient = model_->GetMaterial().ambient;
+	constMap1->diffuse = model_->GetMaterial().diffuse;
+	constMap1->specular = model_->GetMaterial().specular;
+	constMap1->alpha = model_->GetMaterial().alpha;
+	constBuffB1->Unmap(0, nullptr);
 }
 
 void Object3d::Draw()
@@ -358,6 +380,9 @@ void Object3d::Draw()
 
 	// 定数バッファビューをセット
 	cmdList->SetGraphicsRootConstantBufferView(0, constBuffB0->GetGPUVirtualAddress());
+	// 定数バッファビューをセット
+	cmdList->SetGraphicsRootConstantBufferView(1, constBuffB1->GetGPUVirtualAddress());
 
-	
+	// モデル描画
+	model_->Draw(cmdList);
 }

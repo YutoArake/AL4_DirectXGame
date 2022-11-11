@@ -25,17 +25,6 @@ public: // サブクラス
 		XMFLOAT2 uv;  // uv座標
 	};
 
-	// 定数バッファ用データ構造体B1
-	struct ConstBufferDataB1
-	{
-		XMFLOAT3 ambient;	// アンビエント係数
-		float pad1;					// パディング
-		XMFLOAT3 diffuse;		// ディフューズ係数
-		float pad2;					// パディング
-		XMFLOAT3 specular;	// スペキュラー係数
-		float alpha;				// アルファ
-	};
-
 	// マテリアル
 	struct Material {
 		std::string name;			// マテリアル名
@@ -58,19 +47,19 @@ public: // 静的メンバ関数
 	/// 静的初期化
 	/// </summary>
 	/// <param name="device">デバイス</param>
-	static void StaticInitialize(static ID3D12Device* device);
+	static void StaticInitialize(ID3D12Device* device);
+
+	/// <summary>
+	/// 静的モデル.obj生成
+	/// </summary>
+	/// <param name="objname">.objファイルの名前</param>
+	static Model* CreateFromOBJ(const std::string& objname);
 
 private: // 静的メンバ変数
 	// デバイス
 	static ID3D12Device* device;
 	// デスクリプタサイズ
 	static UINT descriptorHandleIncrementSize;
-	// テクスチャバッファ
-	static ComPtr<ID3D12Resource> texbuff;
-	// シェーダリソースビューのハンドル(CPU)
-	static CD3DX12_CPU_DESCRIPTOR_HANDLE cpuDescHandleSRV;
-	// シェーダリソースビューのハンドル(CPU)
-	static CD3DX12_GPU_DESCRIPTOR_HANDLE gpuDescHandleSRV;
 	// デスクリプタヒープ
 	static ComPtr<ID3D12DescriptorHeap> descHeap;
 
@@ -80,28 +69,27 @@ private:// 静的メンバ関数
 	/// </summary>
 	static void InitializeDescriptorHeap();
 
+private: // メンバ関数
 	/// <summary>
 	/// テクスチャ読み込み
 	/// </summary>
-	/// <returns>成否</retunrs>
-	static void LoadTexture(const std::string& directoryPath, const std::string& filename);
-
-private: // メンバ関数
-	/// <summary>
-	/// モデル作成
-	/// </summary>
-	void CreateModel();
+	void LoadTexture(const std::string& directoryPath, const std::string& filename);
 
 	/// <summary>
 	/// マテリアル読み込み
 	/// </summary>
 	void LoadMaterial(const std::string& directoryPath, const std::string& filename);
 
+	/// <summary>
+	/// モデル作成
+	/// </summary>
+	void CreateModel(const std::string& objname);
+
 public: // メンバ関数
 	/// <summary>
 	/// 初期化処理処理
 	/// </summary>
-	void Initialize();
+	bool Initialize(const std::string& objname);
 
 	/// <summary>
 	/// 毎フレーム処理
@@ -111,11 +99,9 @@ public: // メンバ関数
 	/// <summary>
 	/// 描画
 	/// </summary>
-	void Draw(static ID3D12GraphicsCommandList* cmdList);
+	void Draw(ID3D12GraphicsCommandList* cmdList);
 
 private: // メンバ変数
-	// ComPtr<ID3D12Resource> constBuff; // 定数バッファ
-	ComPtr<ID3D12Resource> constBuffB1; // 定数バッファ
 	// 頂点バッファ
 	ComPtr<ID3D12Resource> vertBuff;
 	// インデックスバッファ
@@ -130,7 +116,16 @@ private: // メンバ変数
 	// 頂点インデックス配列
 	// static unsigned short indices[planeCount * 3];
 	std::vector<unsigned short> indices;
-
 	// マテリアル
 	Material material;
+
+	// テクスチャバッファ
+	ComPtr<ID3D12Resource> texbuff;
+	// シェーダリソースビューのハンドル(CPU)
+	CD3DX12_CPU_DESCRIPTOR_HANDLE cpuDescHandleSRV;
+	// シェーダリソースビューのハンドル(CPU)
+	CD3DX12_GPU_DESCRIPTOR_HANDLE gpuDescHandleSRV;
+
+public: // アクセッサ
+	Material GetMaterial() { return material; }
 };
