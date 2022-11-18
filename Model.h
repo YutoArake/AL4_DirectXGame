@@ -58,18 +58,15 @@ public: // 静的メンバ関数
 private: // 静的メンバ変数
 	// デバイス
 	static ID3D12Device* device;
-	// デスクリプタサイズ
-	static UINT descriptorHandleIncrementSize;
-	// デスクリプタヒープ
-	static ComPtr<ID3D12DescriptorHeap> descHeap;
 
 private:// 静的メンバ関数
+
+private: // メンバ関数
 	/// <summary>
 	/// デスクリプタヒープの初期化
 	/// </summary>
-	static void InitializeDescriptorHeap();
+	void InitializeDescriptorHeap();
 
-private: // メンバ関数
 	/// <summary>
 	/// テクスチャ読み込み
 	/// </summary>
@@ -119,6 +116,10 @@ private: // メンバ変数
 	// マテリアル
 	Material material;
 
+	// デスクリプタサイズ
+	UINT descriptorHandleIncrementSize;
+	// デスクリプタヒープ
+	ComPtr<ID3D12DescriptorHeap> descHeap;
 	// テクスチャバッファ
 	ComPtr<ID3D12Resource> texbuff;
 	// シェーダリソースビューのハンドル(CPU)

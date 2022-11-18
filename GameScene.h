@@ -61,9 +61,10 @@ private: // メンバ変数
 	/// </summary>
 	
 	Object3d* object3d = nullptr;
-	Object3d* object3d2 = nullptr;
+	Object3d* togeObj = nullptr;
+
 	Model* model_ = nullptr;
-	Model* model2_ = nullptr;
+	Model* togeModel_ = nullptr;
 	
 	Sprite* spriteBG = nullptr;
 
@@ -71,4 +72,3 @@ private: // メンバ変数
 	Sprite* sprite2 = nullptr;
 
 };
-

@@ -12,17 +12,12 @@ using namespace Microsoft::WRL;
 /// 静的メンバ変数の実体
 /// </summary>
 ID3D12Device* Model::device = nullptr;
-UINT Model::descriptorHandleIncrementSize = 0;
-ComPtr<ID3D12DescriptorHeap> Model::descHeap;
 
 void Model::StaticInitialize(ID3D12Device* device) {
 	// nullptrチェック
 	assert(device);
 
 	Model::device = device;
-
-	// デスクリプタヒープの初期化
-	InitializeDescriptorHeap();
 
 }
 
@@ -39,7 +34,7 @@ Model* Model::CreateFromOBJ(const std::string& objname) {
 		assert(0);
 		return nullptr;
 	}
-	
+
 	return model;
 }
 
@@ -373,6 +368,10 @@ bool Model::Initialize(const std::string& objname) {
 	// nullptrチェック
 	assert(device);
 
+	// デスクリプタヒープ初期化
+	InitializeDescriptorHeap();
+
+	// モデル生成
 	CreateModel(objname);
 
 	return true;

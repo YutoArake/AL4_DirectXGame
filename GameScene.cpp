@@ -10,9 +10,9 @@ GameScene::GameScene()
 GameScene::~GameScene()
 {
 	delete object3d;
-	delete object3d2;
+	delete togeObj;
 	delete model_;
-	delete model2_;
+	delete togeModel_;
 
 	delete spriteBG;
 	delete sprite1;
@@ -39,14 +39,14 @@ void GameScene::Initialize(DirectXCommon* dxCommon, Input* input)
 	// 背景スプライト生成
 	spriteBG = Sprite::Create(1, { 0.0f,0.0f });
 	// モデル生成
-	model_ = Model::CreateFromOBJ("ground");
-	model2_ = Model::CreateFromOBJ("triangle_mat");
+	model_ = Model::CreateFromOBJ("toge");
+	togeModel_ = Model::CreateFromOBJ("toge2");
 	// 3Dオブジェクト生成
 	object3d = Object3d::Create();
-	object3d2 = Object3d::Create();
+	togeObj = Object3d::Create();
 	// 3Dオブジェクトにモデルを割り当てる
 	object3d->SetModel(model_);
-	object3d2->SetModel(model2_);
+	togeObj->SetModel(togeModel_);
 
 	// テクスチャ2番に読み込む
 	Sprite::LoadTexture(2, L"Resources/texture.png");
@@ -85,7 +85,7 @@ void GameScene::Update()
 	}
 
 	object3d->Update();
-	object3d2->Update();
+	togeObj->Update();
 
 	// スプライト移動
 	if (input->PushKey(DIK_SPACE)) {
@@ -125,7 +125,7 @@ void GameScene::Draw()
 
 	// 3Dオブクジェクトの描画
 	object3d->Draw();
-	object3d2->Draw();
+	togeObj->Draw();
 
 	/// <summary>
 	/// ここに3Dオブジェクトの描画処理を追加できる
