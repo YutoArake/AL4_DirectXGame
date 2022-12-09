@@ -132,7 +132,7 @@ void GameScene::Update()
 	// レイと平面の当たり判定
 	XMVECTOR inter;
 	float distance;
-	bool hit = Collision::CheckRay2Triangle(ray, triangle, &distance, &inter);
+	bool hit = Collision::CheckRay2Sphere(ray, sphere, &distance, &inter);
 
 	if (hit) {
 		debugText.Print("HIT", 50, 200, 1.0f);
@@ -156,15 +156,6 @@ void GameScene::Update()
 		debugText.Print(raystr.str(), 50, 240, 1.0f);
 	}
 
-	// スプライト移動
-	if (input->PushKey(DIK_SPACE)) {
-		// 現在の座標を取得
-		XMFLOAT2 position = sprite1->GetPosition();
-		// 移動後の座標を計算
-		position.x += 1.0f;
-		// 座標の変更を反映
-		sprite1->SetPosition(position);
-	}
 }
 
 void GameScene::Draw()
