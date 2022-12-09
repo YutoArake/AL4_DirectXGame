@@ -132,20 +132,28 @@ void GameScene::Update()
 	// レイと平面の当たり判定
 	XMVECTOR inter;
 	float distance;
-	bool hit = Collision::CheckRay2Plane(ray, plane, &distance, &inter);
+	bool hit = Collision::CheckRay2Triangle(ray, triangle, &distance, &inter);
 
 	if (hit) {
 		debugText.Print("HIT", 50, 200, 1.0f);
 		// stringstreamをリセットし、交点座標を埋め込む
 		raystr.str("");
 		raystr.clear();
-		raystr << "("
+		raystr << "inter:("
 			<< std::fixed << std::setprecision(2)
 			<< inter.m128_f32[0] << ","
 			<< inter.m128_f32[1] << ","
 			<< inter.m128_f32[2] << ")";
 
 		debugText.Print(raystr.str(), 50, 220, 1.0f);
+
+		raystr.str("");
+		raystr.clear();
+		raystr << "distance:("
+			<< std::fixed << std::setprecision(2)
+			<< distance << ")";
+
+		debugText.Print(raystr.str(), 50, 240, 1.0f);
 	}
 
 	// スプライト移動
